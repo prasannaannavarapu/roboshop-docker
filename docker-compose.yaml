@@ -1,0 +1,120 @@
+networks:
+  default:
+    external:
+      name: roboshop
+volumes:
+  mongodb: #docker volume create mongodb
+  redis:
+  mysql:
+  rabbitmq:
+services:
+  # docker run -d --name mongodb --network=roboshop mongodb:1
+  mongodb:
+    image: prasannaannavarapu/docker-mongodb:v1
+    container_name: mongodb
+    volumes:
+    - source: mongodb
+      target: /data/db
+      type: volume
+    # networks:
+    # - roboshop
+
+  catalogue:
+    image: prasannaannavarapu/docker-catalogue:v1
+    container_name: catalogue
+    # networks:
+    # - roboshop
+    depends_on:
+    - mongodb
+
+  web:
+    image: prasannaannavarapu/docker-web:v1
+    container_name: web
+    ports:
+    - "80:80"
+    depends_on:
+    - catalogue
+    - cart
+    - user
+    - shipping
+    - payment
+
+  redis:
+    image: redis
+    container_name: redis
+    volumes:
+    - source: redis
+      target: /data
+      type: volume
+
+  user:
+    image: prasannaannavarapu/docker-user:v1
+    container_name: user
+    depends_on:
+    - redis
+    - mongodb
+
+  cart:
+    image: prasannaannavarapu/docker-cart:v1
+    container_name: cart
+    depends_on:
+    - redis
+    - catalogue
+
+  mysql:
+    image: prasannaannavarapu/docker-mysql:v1
+    container_name: mysql
+    volumes:
+    - source: mysql
+      target: /var/lib/mysql
+      type: volume
+
+  shipping:
+    image: prasannaannavarapu/docker-shipping:v1
+    container_name: shipping
+    depends_on:
+    - mysql
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq
+    environment:
+    - RABBITMQ_DEFAULT_USER=roboshop
+    - RABBITMQ_DEFAULT_PASS=roboshop123
+    volumes:
+    - source: rabbitmq
+      target: /var/lib/rabbitmq
+      type: volume
+
+  payment:
+    container_name: payment
+    image: prasannaannavarapu/docker-payment:v1
+    depends_on:
+    - rabbitmq
+    - user
+    - cart
+
+#docker network create -d bridge roboshop  --> to create network
+#docker network rm roboshop
+#docker volume create mongodb
+#docker volume inspect mongodb
+#docker volume ls
+#docker volume rm mongodb
+#docker run -d --name mongodb --mount source=mongodb,target=/data/db --network=roboshop docker-momgodb:v1
+
+#Docker-compose Installation
+#sudo curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+#sudo chmod +x /usr/local/bin/docker-compose
+#docker-compose --version
+#mongodb Error pull access denied for mongodb, repository does not exist or may require 'docker login': denied: reque...  
+#docker login
+#docker build -t prasannaannavarapu/docker-mongodb:v1 .
+#docker push prasannaannavarapu/docker-mongodb:v1
+#docker network create -d bridge roboshop
+#docker network roboshop
+#docker-compose up -d
+#docker-compose images
+#docker-compose ps
+#docker-compose logs
+#docker-compose exec mongodb bash
+

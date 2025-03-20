@@ -23,3 +23,5 @@ CMD ["node", "server.js"]
 #docker rm 8f5388b2164b
 #mongodb]# docker run -d --name catalogue  docker-catalogue:v1
 #docker logs aab0b85ce151
+#docker ps 
+#docker logs aab0b85ce151
